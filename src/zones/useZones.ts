@@ -66,7 +66,11 @@ export function useZones(duration: number): ZoneState {
   const attach = useRef((canvas: HTMLCanvasElement) => {
     let drag: Drag | null = null
     const toX = (e: PointerEvent) => e.clientX - canvas.getBoundingClientRect().left
-    const timeAt = (e: PointerEvent) => geo.current!.xToTime(toX(e))
+    // finite even if the view has no width; pointer capture keeps events flowing past the edge
+    const timeAt = (e: PointerEvent) => {
+      const t = geo.current ? geo.current.xToTime(toX(e)) : 0
+      return Number.isFinite(t) ? t : 0
+    }
     const tolSec = () => (GRAB_PX * geo.current!.window) / Math.max(1, geo.current!.width)
 
     const down = (e: PointerEvent) => {

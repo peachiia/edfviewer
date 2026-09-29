@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { EdfParseError, loadRecording, type Recording } from './parser/parse'
 import { ZonePsdViewer } from './psd/ZonePsdViewer'
+import { browserStorage, loadTheme, saveTheme } from './persist'
 import { FiltersMenu, maxFilterFreq, useFilteredData, useFilterSettings } from './filters'
 
 type Theme = 'dark' | 'light'
@@ -13,13 +14,7 @@ interface Loaded {
 const WARN_BYTES = 1e9
 
 function initialTheme(): Theme {
-  try {
-    const t = localStorage.getItem('edfviewer.theme')
-    if (t === 'light' || t === 'dark') return t
-  } catch {
-    /* storage unavailable */
-  }
-  return 'dark'
+  return loadTheme(browserStorage())
 }
 
 const nextPaint = () => new Promise<void>((r) => requestAnimationFrame(() => setTimeout(r, 0)))
@@ -39,11 +34,7 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
-    try {
-      localStorage.setItem('edfviewer.theme', theme)
-    } catch {
-      /* ignore */
-    }
+    saveTheme(browserStorage(), theme)
   }, [theme])
 
   const load = useCallback(async (source: Blob, name: string) => {

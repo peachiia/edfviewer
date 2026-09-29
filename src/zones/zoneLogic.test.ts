@@ -31,6 +31,17 @@ describe('createZone', () => {
   })
 })
 
+describe('dragging past the recording edges', () => {
+  it('clamps a create-drag beyond either end', () => {
+    expect(createZone(5, 500, 60)).toEqual({ start: 5, end: 60 })
+    expect(createZone(5, -30, 60)).toEqual({ start: 0, end: 5 })
+    expect(createZone(-10, 70, 60)).toEqual({ start: 0, end: 60 })
+  })
+  it('a drag entirely outside the recording yields no zone instead of throwing', () => {
+    expect(createZone(80, 90, 60)).toBeNull()
+  })
+})
+
 describe('isTooShort', () => {
   it('flags zones under the minimum', () => {
     expect(isTooShort({ start: 0, end: MIN_ZONE_SECONDS - 0.1 })).toBe(true)
