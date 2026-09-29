@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { EdfParseError, loadRecording, type Recording } from './parser/parse'
 import { Viewer } from './viewer/Viewer'
+import { FiltersMenu, maxFilterFreq, useFilteredData, useFilterSettings } from './filters'
 
 type Theme = 'dark' | 'light'
 interface Loaded {
@@ -30,6 +31,8 @@ export default function App() {
   const [warnings, setWarnings] = useState<string[]>([])
   const [dragging, setDragging] = useState(false)
   const [theme, setTheme] = useState<Theme>(initialTheme)
+  const { settings: filterSettings, setSettings: setFilterSettings } = useFilterSettings()
+  const filtered = useFilteredData(current?.rec ?? null, filterSettings)
   const fileInput = useRef<HTMLInputElement>(null)
   const idRef = useRef(0)
   const dragDepth = useRef(0)
@@ -163,6 +166,17 @@ export default function App() {
           onOpen={openDialog}
           theme={theme}
           onToggleTheme={toggleTheme}
+          getData={(i) => filtered.getData(i) ?? current.rec.channels[i].data}
+          overlayKey={filtered.version}
+          toolbarExtra={
+            <FiltersMenu
+              settings={filterSettings}
+              onChange={setFilterSettings}
+              maxFreq={maxFilterFreq(current.rec.channels)}
+              label={filtered.label}
+              pending={filtered.pending}
+            />
+          }
         />
       ) : (
         <div className="empty">

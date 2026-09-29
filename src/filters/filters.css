@@ -1,0 +1,55 @@
+.filters-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filters-menu .filter-label {
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.filters-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 50;
+  min-width: 300px;
+  padding: 10px 12px;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.filters-pop fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.filters-pop fieldset:disabled {
+  opacity: 0.5;
+}
+.filters-pop .frow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.filters-pop .chk {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 84px;
+}
+.filters-pop .master {
+  font-weight: 600;
+}
+.filters-pop .fnote {
+  margin: 0;
+  font-size: 12px;
+}
