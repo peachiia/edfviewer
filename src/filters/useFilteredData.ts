@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { DEFAULT_FILTER_SETTINGS, type FilterSettings } from '../dsp'
+import { type FilterSettings } from '../dsp'
 import type { Recording } from '../parser/parse'
+import { prefsStore } from '../persist'
 import { FilterCoordinator } from './coordinator'
 import { filterLabel } from './label'
 import type { Samples, WorkerLike } from './types'
@@ -18,7 +19,8 @@ export interface FilteredData {
 }
 
 export function useFilterSettings() {
-  const [settings, setSettings] = useState<FilterSettings>(DEFAULT_FILTER_SETTINGS)
+  const [settings, setSettings] = useState<FilterSettings>(() => prefsStore().get().filters)
+  useEffect(() => prefsStore().patch('filters', settings), [settings])
   return { settings, setSettings }
 }
 

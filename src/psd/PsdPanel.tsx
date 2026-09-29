@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BAND_NAMES, DEFAULT_SEGMENT_SECONDS, MAX_SEGMENT_SECONDS, MIN_SEGMENT_SECONDS, deltaBandPower, type BandPowers } from '../dsp'
+import { BAND_NAMES, MAX_SEGMENT_SECONDS, MIN_SEGMENT_SECONDS, deltaBandPower, type BandPowers } from '../dsp'
 import type { Recording } from '../parser/parse'
+import { prefsStore } from '../persist'
 import { ZONE_COLORS } from '../zones/useZones'
 import { isTooShort, type ZoneId, type Zones } from '../zones/zoneLogic'
 import type { DataSource } from './dataSource'
@@ -35,15 +36,20 @@ export function PsdPanel({ recording, zones, source, theme, channelNames }: Prop
     () => recording.channels.map((c, i) => ({ i, c })).filter((x) => x.c.isEeg),
     [recording],
   )
-  const [open, setOpen] = useState(true)
-  const [height, setHeight] = useState(300)
+  const [saved] = useState(() => prefsStore().get().psd)
+  const [open, setOpen] = useState(saved.open)
+  const [height, setHeight] = useState(saved.height)
   const [channel, setChannel] = useState(() => eegChannels[0]?.i ?? 0)
-  const [segment, setSegment] = useState(DEFAULT_SEGMENT_SECONDS)
-  const [fmaxInput, setFmaxInput] = useState(45)
-  const [log, setLog] = useState(false)
-  const [sharedY, setSharedY] = useState(true)
-  const [view, setView] = useState<PsdViewMode>('side')
+  const [segment, setSegment] = useState(saved.segment)
+  const [fmaxInput, setFmaxInput] = useState(saved.fmax)
+  const [log, setLog] = useState(saved.log)
+  const [sharedY, setSharedY] = useState(saved.sharedY)
+  const [view, setView] = useState<PsdViewMode>(saved.view)
   const [results, setResults] = useState<Results>({ A: null, B: null })
+
+  useEffect(() => {
+    prefsStore().patch('psd', { open, height, segment, fmax: fmaxInput, log, sharedY, view })
+  }, [open, height, segment, fmaxInput, log, sharedY, view])
 
   const ch = recording.channels[channel]
   const fs = ch?.samplingRate ?? 1

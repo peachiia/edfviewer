@@ -1,13 +1,12 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Recording } from '../parser/parse'
+import { matchChannelNames, prefsStore } from '../persist'
 import {
   autoScaleSensitivity,
   clamp,
   clampStart,
   clampStep,
   clampWindow,
-  DEFAULT_SENSITIVITY,
-  DEFAULT_WINDOW,
   niceCeil,
   robustAmplitude,
   stepSensitivity,
@@ -21,12 +20,25 @@ export type SideTab = string
 /** All viewer UI state + actions. Rendering itself lives outside React (renderer.ts). */
 export function useViewerState(rec: Recording, getData: ChannelDataAccessor) {
   const duration = rec.duration
-  const [nav, setNav] = useState({ start: 0, window: DEFAULT_WINDOW })
-  const [stepOverride, setStepOverride] = useState<number | null>(null)
-  const [sensitivity, setSensitivityRaw] = useState(DEFAULT_SENSITIVITY)
-  const [prefs, setPrefs] = useState<ChannelPrefs[]>(() =>
-    rec.channels.map((c, i) => ({ name: c.label || `Ch ${i + 1}`, hidden: false })),
-  )
+  const [saved] = useState(() => prefsStore().get().viewer)
+  const [nav, setNav] = useState({ start: 0, window: saved.window })
+  const [stepOverride, setStepOverride] = useState<number | null>(saved.step)
+  const [sensitivity, setSensitivityRaw] = useState(saved.sensitivity)
+  const [prefs, setPrefs] = useState<ChannelPrefs[]>(() => {
+    // last-used names apply only when channel count and per-channel rates match
+    const remembered = matchChannelNames(
+      prefsStore().getChannelNames(),
+      rec.channels.map((c) => c.samplingRate),
+    )
+    return rec.channels.map((c, i) => ({
+      name: remembered?.[i] || c.label || `Ch ${i + 1}`,
+      hidden: false,
+    }))
+  })
+
+  useEffect(() => {
+    prefsStore().patch('viewer', { window: nav.window, step: stepOverride, sensitivity })
+  }, [nav.window, stepOverride, sensitivity])
   const [showTriggers, setShowTriggers] = useState(true)
   const [tab, setTab] = useState<SideTab>('channels')
 
@@ -83,7 +95,12 @@ export function useViewerState(rec: Recording, getData: ChannelDataAccessor) {
   const setName = useCallback(
     (i: number, name: string) => {
       const t = name.trim()
-      patchPref(i, { name: t === '' ? rec.channels[i].label || `Ch ${i + 1}` : t })
+      const next = t === '' ? rec.channels[i].label || `Ch ${i + 1}` : t
+      patchPref(i, { name: next })
+      prefsStore().setChannelNames({
+        rates: rec.channels.map((c) => c.samplingRate),
+        names: prefsRef.current.map((p, j) => (j === i ? next : p.name)),
+      })
     },
     [patchPref, rec],
   )
