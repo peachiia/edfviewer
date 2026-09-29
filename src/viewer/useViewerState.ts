@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Recording } from '../parser/parse'
 import { matchChannelNames, prefsStore } from '../persist'
 import {
+  defaultHidden,
   autoScaleSensitivity,
   clamp,
   clampStart,
@@ -30,9 +31,10 @@ export function useViewerState(rec: Recording, getData: ChannelDataAccessor) {
       prefsStore().getChannelNames(),
       rec.channels.map((c) => c.samplingRate),
     )
+    const hidden = defaultHidden(rec.channels)
     return rec.channels.map((c, i) => ({
       name: remembered?.[i] || c.label || `Ch ${i + 1}`,
-      hidden: false,
+      hidden: hidden[i],
     }))
   })
 

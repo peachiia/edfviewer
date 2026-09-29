@@ -142,6 +142,9 @@ export function SettingsDialog({ theme, onTheme, onClose }: Props) {
                   <strong>PSD</strong>: pick zone A (and B) on the EEG view, choose a channel, and compare side by side
                   or overlaid. Zones shorter than ~2 s give a poor spectrum.
                 </li>
+                <li>
+                  Non-EEG channels (battery, accelerometer, counter…) start hidden; turn them on in the Channels tab.
+                </li>
                 <li>Triggers come from EDF+/BDF+ annotations and the BioSemi Status channel.</li>
                 <li>EDF+D (discontinuous) files are not supported.</li>
               </ul>

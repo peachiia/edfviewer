@@ -210,3 +210,12 @@ export function niceCeil(x: number): number {
   for (const m of [1, 2, 5, 10]) if (m * base >= x * (1 - 1e-12)) return m * base
   return 10 * base
 }
+
+/**
+ * Which channels start hidden: non-EEG channels (battery, accelerometer, counter…),
+ * unless the file has no EEG channel at all (then show everything).
+ */
+export function defaultHidden(channels: readonly { isEeg: boolean }[]): boolean[] {
+  const anyEeg = channels.some((c) => c.isEeg)
+  return channels.map((c) => anyEeg && !c.isEeg)
+}

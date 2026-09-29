@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  defaultHidden,
   autoScaleSensitivity,
   clampStart,
   clampStep,
@@ -184,5 +185,14 @@ describe('niceCeil', () => {
     expect(niceCeil(6)).toBe(10)
     expect(niceCeil(0.03)).toBeCloseTo(0.05, 12)
     expect(niceCeil(120)).toBe(200)
+  })
+})
+
+describe('defaultHidden', () => {
+  it('hides non-EEG channels when an EEG channel exists', () => {
+    expect(defaultHidden([{ isEeg: true }, { isEeg: false }, { isEeg: true }])).toEqual([false, true, false])
+  })
+  it('shows everything when there is no EEG channel', () => {
+    expect(defaultHidden([{ isEeg: false }, { isEeg: false }])).toEqual([false, false])
   })
 })
