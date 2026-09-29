@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Recording } from '../parser/parse'
 import { ChannelLabels } from './ChannelLabels'
 import { EegCanvas } from './EegCanvas'
@@ -7,6 +7,15 @@ import { SidePanel, type ExtraTab } from './SidePanel'
 import { Toolbar } from './Toolbar'
 import type { ChannelDataAccessor, EegOverlayPainter, MinimapOverlayPainter } from './types'
 import { useViewerState } from './useViewerState'
+
+const SIDE_KEY = 'edfviewer.sidePanel'
+function loadSideOpen(): boolean {
+  try {
+    return localStorage.getItem(SIDE_KEY) !== 'closed'
+  } catch {
+    return true
+  }
+}
 
 export interface ViewerProps {
   recording: Recording
@@ -40,6 +49,16 @@ export function Viewer(props: ViewerProps) {
   const rawData = useMemo<ChannelDataAccessor>(() => (i) => rec.channels[i].data, [rec])
   const getData = props.getData ?? rawData
   const vs = useViewerState(rec, getData)
+  const [sideOpen, setSideOpen] = useState(loadSideOpen)
+  const toggleSide = () =>
+    setSideOpen((o) => {
+      try {
+        localStorage.setItem(SIDE_KEY, o ? 'closed' : 'open')
+      } catch {
+        /* ignore */
+      }
+      return !o
+    })
 
   // keyboard
   useEffect(() => {
@@ -73,6 +92,8 @@ export function Viewer(props: ViewerProps) {
         vs={vs}
         onOpen={props.onOpen}
         onOpenSettings={props.onOpenSettings}
+        sideOpen={sideOpen}
+        onToggleSide={toggleSide}
         extra={props.toolbarExtra}
       />
       <div className="main">
@@ -123,7 +144,7 @@ export function Viewer(props: ViewerProps) {
             ? props.bottomPanel(vs.prefs.map((p) => p.name))
             : props.bottomPanel}
         </div>
-        <SidePanel rec={rec} vs={vs} extraTabs={props.extraTabs} />
+        {sideOpen && <SidePanel rec={rec} vs={vs} extraTabs={props.extraTabs} />}
       </div>
     </div>
   )
