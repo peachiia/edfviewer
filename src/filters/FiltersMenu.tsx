@@ -97,15 +97,20 @@ export function FiltersMenu({ settings, onChange, maxFreq, label, pending }: Pro
 
   return (
     <div className="filters-menu" ref={root}>
-      <button onClick={() => setOpen((o) => !o)} aria-expanded={open} className={settings.enabled ? 'active' : ''}>
-        Filters ▾
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className={settings.enabled ? 'active' : ''}
+        title={`Active filters: ${label}${pending ? ' (filtering…)' : ''}`}
+      >
+        Filters{pending ? ' …' : ''} ▾
       </button>
-      <span className="filter-label" title="Active filters (zero-phase Butterworth)">
-        {label}
-        {pending && <span className="muted"> · filtering…</span>}
-      </span>
       {open && (
         <div className="filters-pop" role="dialog" aria-label="Filters">
+          <div className="muted fnote" aria-live="polite">
+            Active: {label}
+            {pending && ' · filtering…'}
+          </div>
           <label className="chk master">
             <input type="checkbox" checked={settings.enabled} onChange={(e) => set({ enabled: e.target.checked })} />
             Enable filters
