@@ -61,7 +61,15 @@ export function EegCanvas(props: EegCanvasProps) {
       void _p
       void _z
       void _k
-      drawEeg(ctx, { ...rest, width: w, height: h, dpr, colors: readColors(wrap) })
+      const overlay = rest.overlay
+      drawEeg(ctx, {
+        ...rest,
+        overlay: overlay && ((c, g) => overlay(c, { ...g, panBy: propsRef.current.onPan })),
+        width: w,
+        height: h,
+        dpr,
+        colors: readColors(wrap),
+      })
     })
   })
 

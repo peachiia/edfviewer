@@ -37,6 +37,8 @@ export interface ViewGeometry {
   visible: number[]
   timeToX: (t: number) => number
   xToTime: (x: number) => number
+  /** Pan the view by dt seconds (clamped to the recording). Lets overlays auto-scroll while dragging. */
+  panBy?: (dt: number) => void
 }
 
 /**

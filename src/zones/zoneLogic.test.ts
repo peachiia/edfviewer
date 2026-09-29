@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  AUTOSCROLL_MARGIN_PX,
   MIN_ZONE_SECONDS,
+  autoScrollDelta,
   createZone,
   hitTest,
   isTooShort,
@@ -95,5 +97,35 @@ describe('hitTest', () => {
   it('prefers the nearer edge when both are in tolerance', () => {
     const z2 = { A: { start: 10, end: 20 }, B: { start: 20.2, end: 30 } }
     expect(hitTest(z2, 20.15, 0.5)).toEqual({ id: 'B', part: 'start' })
+  })
+})
+
+describe('autoScrollDelta', () => {
+  const W = 800
+  it('is 0 while the pointer is comfortably inside', () => {
+    expect(autoScrollDelta(400, W, 10, 1 / 60)).toBe(0)
+    expect(autoScrollDelta(AUTOSCROLL_MARGIN_PX + 1, W, 10, 1 / 60)).toBe(0)
+  })
+  it('pans left near/past the left edge and right near/past the right edge', () => {
+    expect(autoScrollDelta(5, W, 10, 1 / 60)).toBeLessThan(0)
+    expect(autoScrollDelta(-200, W, 10, 1 / 60)).toBeLessThan(0)
+    expect(autoScrollDelta(W - 5, W, 10, 1 / 60)).toBeGreaterThan(0)
+    expect(autoScrollDelta(W + 200, W, 10, 1 / 60)).toBeGreaterThan(0)
+  })
+  it('speeds up the further the pointer is out, and caps', () => {
+    const near = autoScrollDelta(W - 10, W, 10, 1 / 60)
+    const far = autoScrollDelta(W + 60, W, 10, 1 / 60)
+    const farther = autoScrollDelta(W + 600, W, 10, 1 / 60)
+    expect(far).toBeGreaterThan(near)
+    expect(farther).toBeCloseTo(autoScrollDelta(W + 6000, W, 10, 1 / 60), 10)
+  })
+  it('scales with the window length and ignores bad input', () => {
+    expect(autoScrollDelta(W + 200, W, 20, 1 / 60)).toBeCloseTo(2 * autoScrollDelta(W + 200, W, 10, 1 / 60), 10)
+    expect(autoScrollDelta(NaN, W, 10, 1 / 60)).toBe(0)
+    expect(autoScrollDelta(W + 200, 0, 10, 1 / 60)).toBe(0)
+    expect(autoScrollDelta(W + 200, W, 10, 0)).toBe(0)
+  })
+  it('caps a stalled frame', () => {
+    expect(autoScrollDelta(W + 200, W, 10, 5)).toBeCloseTo(autoScrollDelta(W + 200, W, 10, 0.1), 10)
   })
 })

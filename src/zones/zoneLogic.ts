@@ -67,3 +67,27 @@ export function hitTest(zones: Zones, t: number, tolSec: number): ZoneHit | null
   }
   return null
 }
+
+/** Pointer this close to a view edge (px) starts auto-scrolling during a zone drag. */
+export const AUTOSCROLL_MARGIN_PX = 28
+/** Distance beyond the margin (px) at which auto-scroll reaches full speed. */
+const AUTOSCROLL_RAMP_PX = 80
+/** Full speed, in windows per second. */
+const AUTOSCROLL_WINDOWS_PER_SEC = 0.6
+
+/**
+ * Seconds to pan the view this frame while dragging a zone: 0 when the pointer is
+ * comfortably inside, negative near/past the left edge, positive near/past the right.
+ * Speed ramps with how far the pointer is into the margin or beyond the edge.
+ */
+export function autoScrollDelta(x: number, width: number, windowSec: number, dtSec: number): number {
+  if (!(width > 0) || !(windowSec > 0) || !(dtSec > 0) || !Number.isFinite(x)) return 0
+  const margin = Math.min(AUTOSCROLL_MARGIN_PX, width / 3)
+  let depth = 0
+  if (x < margin) depth = -(margin - x)
+  else if (x > width - margin) depth = x - (width - margin)
+  if (depth === 0) return 0
+  const intensity = Math.min(1, Math.abs(depth) / AUTOSCROLL_RAMP_PX)
+  // dt is capped so a stalled frame cannot jump the view
+  return Math.sign(depth) * intensity * AUTOSCROLL_WINDOWS_PER_SEC * windowSec * Math.min(dtSec, 0.1)
+}

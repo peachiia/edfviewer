@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { EegOverlayPainter, MinimapOverlayPainter, ViewGeometry } from '../viewer/types'
 import {
+  autoScrollDelta,
   createZone,
   hitTest,
   moveEdge,
@@ -83,8 +84,48 @@ export function useZones(duration: number): ZoneState {
       } else {
         drag = { kind: 'create', id: e.shiftKey ? 'B' : arm, anchor: t, x0: toX(e), active: false }
       }
+      lastX = toX(e)
       canvas.setPointerCapture(e.pointerId)
       e.preventDefault()
+    }
+    // Update the dragged zone from the last pointer x and the current view.
+    let lastX = 0
+    const update = () => {
+      if (!drag || !geo.current) return
+      const t = geo.current.xToTime(lastX)
+      if (!Number.isFinite(t)) return
+      const dur = latest.current.duration
+      if (drag.kind === 'edge') {
+        const z = latest.current.zones[drag.id]
+        if (z) put(drag.id, moveEdge(z, drag.edge, t, dur))
+      } else {
+        if (!drag.active && Math.abs(lastX - drag.x0) < DRAG_START_PX) return
+        drag.active = true
+        const z = createZone(drag.anchor, t, dur)
+        if (z) put(drag.id, z)
+      }
+    }
+    // While the pointer is near/past a view edge, pan every frame (pointer capture
+    // keeps pointermove flowing outside the canvas; this loop keeps panning when it is still).
+    let raf = 0
+    let lastTs = 0
+    const tick = (ts: number) => {
+      raf = 0
+      if (!drag || !geo.current) return
+      const d = autoScrollDelta(lastX, geo.current.width, geo.current.window, (ts - lastTs) / 1000)
+      lastTs = ts
+      if (d !== 0 && drag && (drag.kind === 'edge' || drag.active)) geo.current.panBy?.(d)
+      update()
+      raf = requestAnimationFrame(tick)
+    }
+    const startLoop = () => {
+      if (raf) return
+      lastTs = performance.now()
+      raf = requestAnimationFrame(tick)
+    }
+    const stopLoop = () => {
+      if (raf) cancelAnimationFrame(raf)
+      raf = 0
     }
     const move = (e: PointerEvent) => {
       if (!geo.current) return
@@ -93,21 +134,14 @@ export function useZones(duration: number): ZoneState {
         canvas.style.cursor = hit && hit.part !== 'body' ? 'ew-resize' : 'crosshair'
         return
       }
-      const t = timeAt(e)
-      const dur = latest.current.duration
-      if (drag.kind === 'edge') {
-        const z = latest.current.zones[drag.id]
-        if (z) put(drag.id, moveEdge(z, drag.edge, t, dur))
-      } else {
-        if (!drag.active && Math.abs(toX(e) - drag.x0) < DRAG_START_PX) return
-        drag.active = true
-        const z = createZone(drag.anchor, t, dur)
-        if (z) put(drag.id, z)
-      }
+      lastX = toX(e)
+      update()
+      startLoop()
     }
     const up = (e: PointerEvent) => {
       if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId)
       drag = null
+      stopLoop()
     }
     canvas.addEventListener('pointerdown', down)
     canvas.addEventListener('pointermove', move)
@@ -115,6 +149,7 @@ export function useZones(duration: number): ZoneState {
     canvas.addEventListener('pointercancel', up)
     canvas.style.cursor = 'crosshair'
     return () => {
+      stopLoop()
       canvas.removeEventListener('pointerdown', down)
       canvas.removeEventListener('pointermove', move)
       canvas.removeEventListener('pointerup', up)
