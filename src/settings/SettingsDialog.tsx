@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import pkg from '../../package.json'
+import avatar from './assets/peachiia.jpg'
 import './settings.css'
 
 export type Theme = 'dark' | 'light'
@@ -148,27 +149,54 @@ export function SettingsDialog({ theme, onTheme, onClose }: Props) {
           )}
 
           {tab === 'about' && (
-            <section>
-              <h3>EDF Viewer</h3>
+            <section className="about">
+              <div className="about-hero">
+                <img className="avatar" src={avatar} width={72} height={72} alt="@peachiia" />
+                <div>
+                  <h3 className="about-title">EDF Viewer</h3>
+                  <div className="about-tag">EEG &amp; biosignal viewer for EDF / BDF files</div>
+                  <div className="about-by">
+                    Developed by{' '}
+                    <a href="https://github.com/peachiia" target="_blank" rel="noreferrer">
+                      @peachiia
+                    </a>
+                  </div>
+                </div>
+              </div>
+
               <p>
-                A browser-only viewer for EDF/BDF biosignal recordings, built for inspecting EEG: scroll through the
-                signal, filter it, mark triggers, and compare the power spectrum of two time zones (for example eyes
-                open vs eyes closed).
+                Scroll through a recording, filter it, mark triggers, and compare the power spectrum of two time zones
+                (for example eyes open vs eyes closed).
               </p>
-              <p>
-                <strong>Private by design:</strong> files are read and processed in your browser and are never uploaded.
-              </p>
-              <p>
-                Developed by{' '}
-                <a href="https://github.com/peachiia" target="_blank" rel="noreferrer">
-                  @peachiia
-                </a>
-                .{' '}
-                <a href="https://github.com/peachiia/edfviewer" target="_blank" rel="noreferrer">
+
+              <ul className="chips">
+                {['EDF · BDF · EDF+/BDF+', 'Zero-phase filters', 'Triggers & annotations', 'Zone PSD compare'].map(
+                  (c) => (
+                    <li key={c}>{c}</li>
+                  ),
+                )}
+              </ul>
+
+              <div className="privacy">
+                <span aria-hidden="true">🔒</span>
+                <span>
+                  <strong>Private by design.</strong> Files are read and processed in your browser and are never
+                  uploaded.
+                </span>
+              </div>
+
+              <div className="about-links">
+                <a className="btn-link" href="https://github.com/peachiia/edfviewer" target="_blank" rel="noreferrer">
                   Source on GitHub
                 </a>
+                <a className="btn-link" href="https://github.com/peachiia" target="_blank" rel="noreferrer">
+                  @peachiia
+                </a>
+              </div>
+
+              <p className="muted about-foot">
+                Version {pkg.version} · MIT License · Made with React, TypeScript and Canvas
               </p>
-              <p className="muted">Version {pkg.version} · MIT License</p>
             </section>
           )}
         </div>
