@@ -219,7 +219,7 @@ input.name-input {
   color: var(--text);
 }
 .file-info {
-  max-width: 34vw;
+  max-width: 22vw;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
