@@ -29,6 +29,7 @@ A browser-only viewer for EDF/BDF biosignal recordings, built for inspecting EEG
 | Drag on the signal | Select Zone A |
 | `Shift` + drag | Select Zone B |
 | Double-click a channel name | Rename it |
+| `→ A` / `→ B` on a trigger | Use that trigger as a zone: its duration, or until the next trigger |
 | Drop a file anywhere | Open it |
 
 The **⚙ Settings** button has the same list, plus the theme switch and About.

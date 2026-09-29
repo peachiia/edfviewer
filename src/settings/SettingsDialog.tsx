@@ -28,6 +28,7 @@ const MOUSE: [string, string][] = [
   ['Click the minimap', 'Jump to that position'],
   ['Double-click a channel name', 'Rename it (used in the PSD picker and band table too)'],
   ['Click a trigger in the list', 'Jump to it'],
+  ['→ A / → B on a trigger', 'Make that trigger a zone: its duration, or until the next trigger (Trim cuts N s off both ends)'],
   ['Panel button (toolbar)', 'Hide / show the Triggers and Channels side panel'],
   ['Drop a file anywhere', 'Open an EDF / BDF file'],
 ]

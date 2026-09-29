@@ -3,6 +3,7 @@ import type { Recording, Trigger } from '../parser/parse'
 import { EditableName } from './EditableName'
 import { fmtNum } from './format'
 import { formatTime } from './math'
+import type { TriggerZoneActions } from './types'
 import type { ViewerState } from './useViewerState'
 
 export interface ExtraTab {
@@ -16,9 +17,10 @@ interface Props {
   vs: ViewerState
   /** EXTENSION POINT: additional tabs (e.g. zones). Ids must not clash with 'triggers'/'channels'. */
   extraTabs?: ExtraTab[]
+  zoneActions?: TriggerZoneActions
 }
 
-export function SidePanel({ rec, vs, extraTabs = [] }: Props) {
+export function SidePanel({ rec, vs, extraTabs = [], zoneActions }: Props) {
   const tab = vs.tab
   return (
     <aside className="side">
@@ -36,7 +38,7 @@ export function SidePanel({ rec, vs, extraTabs = [] }: Props) {
         ))}
       </div>
       <div className="tab-body">
-        {tab === 'triggers' && <TriggerList triggers={rec.triggers} vs={vs} />}
+        {tab === 'triggers' && <TriggerList triggers={rec.triggers} vs={vs} zoneActions={zoneActions} />}
         {tab === 'channels' && <ChannelList rec={rec} vs={vs} />}
         {extraTabs.find((t) => t.id === tab)?.content}
       </div>
@@ -47,8 +49,22 @@ export function SidePanel({ rec, vs, extraTabs = [] }: Props) {
 const ROW_H = 26
 const VIEWPORT_GUESS = 600
 
-function TriggerList({ triggers, vs }: { triggers: Trigger[]; vs: ViewerState }) {
+function TriggerList({
+  triggers,
+  vs,
+  zoneActions,
+}: {
+  triggers: Trigger[]
+  vs: ViewerState
+  zoneActions?: TriggerZoneActions
+}) {
   const [scroll, setScroll] = useState(0)
+  const [note, setNote] = useState<string | null>(null)
+  const setZone = (slot: 'A' | 'B', idx: number) => {
+    const err = zoneActions?.onSet(slot, idx) ?? null
+    setNote(err)
+    if (!err) vs.jumpTo(triggers[idx].time)
+  }
   const first = Math.max(0, Math.floor(scroll / ROW_H) - 5)
   const last = Math.min(triggers.length, Math.ceil((scroll + VIEWPORT_GUESS * 2) / ROW_H) + 5)
   const active = (t: Trigger) => t.time >= vs.start && t.time <= vs.start + vs.window
@@ -58,6 +74,28 @@ function TriggerList({ triggers, vs }: { triggers: Trigger[]; vs: ViewerState })
         <input type="checkbox" checked={vs.showTriggers} onChange={(e) => vs.setShowTriggers(e.target.checked)} />
         Show triggers
       </label>
+      {zoneActions && triggers.length > 0 && (
+        <div className="trigger-zone-bar">
+          <label title="Seconds cut from both ends of a zone made from a trigger">
+            Trim
+            <input
+              className="num"
+              type="number"
+              min={0}
+              step={0.5}
+              value={zoneActions.trim}
+              onChange={(e) => zoneActions.onTrimChange(Math.max(0, parseFloat(e.target.value) || 0))}
+            />
+            s
+          </label>
+          <span className="muted">→ A / → B: this trigger until the next one</span>
+        </div>
+      )}
+      {note && (
+        <p className="zone-warn pad" role="status">
+          {note}
+        </p>
+      )}
       {triggers.length === 0 ? (
         <p className="muted pad">No triggers found in this recording.</p>
       ) : (
@@ -66,19 +104,37 @@ function TriggerList({ triggers, vs }: { triggers: Trigger[]; vs: ViewerState })
             {triggers.slice(first, last).map((t, k) => {
               const idx = first + k
               return (
-                <button
+                <div
                   key={idx}
                   className={'trigger-row' + (active(t) ? ' active' : '')}
                   style={{ top: idx * ROW_H, height: ROW_H }}
-                  onClick={() => vs.jumpTo(t.time)}
-                  title={`${t.source} trigger at ${t.time.toFixed(3)} s`}
                 >
-                  <span className="t-time">{formatTime(t.time, 2)}</span>
-                  <span className="t-text">{t.text || (t.source === 'status' ? `Status ${t.value}` : '(no text)')}</span>
-                  {t.source === 'annotation' && t.duration ? (
-                    <span className="t-dur">{fmtNum(t.duration)} s</span>
-                  ) : null}
-                </button>
+                  <button
+                    className="trigger-jump"
+                    onClick={() => vs.jumpTo(t.time)}
+                    title={`${t.source} trigger at ${t.time.toFixed(3)} s`}
+                  >
+                    <span className="t-time">{formatTime(t.time, 2)}</span>
+                    <span className="t-text">
+                      {t.text || (t.source === 'status' ? `Status ${t.value}` : '(no text)')}
+                    </span>
+                    {t.source === 'annotation' && t.duration ? (
+                      <span className="t-dur">{fmtNum(t.duration)} s</span>
+                    ) : null}
+                  </button>
+                  {zoneActions &&
+                    (['A', 'B'] as const).map((slot) => (
+                      <button
+                        key={slot}
+                        className="small trigger-zone-btn"
+                        data-slot={slot}
+                        title={`Set Zone ${slot} from this trigger`}
+                        onClick={() => setZone(slot, idx)}
+                      >
+                        → {slot}
+                      </button>
+                    ))}
+                </div>
               )
             })}
           </div>

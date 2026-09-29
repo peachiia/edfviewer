@@ -10,6 +10,8 @@ import {
   type ZoneEdge,
   type ZoneId,
   type Zones,
+  zoneFromTrigger,
+  MIN_ZONE_SECONDS,
 } from './zoneLogic'
 
 export const ZONE_COLORS: Record<ZoneId, string> = { A: '#3ea6ff', B: '#ff6fa8' }
@@ -23,6 +25,15 @@ export interface ZoneState {
   armed: ZoneId
   setArmed: (id: ZoneId) => void
   clear: (id: ZoneId) => void
+  /** Seconds trimmed from both ends of a trigger-derived zone. */
+  trim: number
+  setTrim: (s: number) => void
+  /** Set a zone from a trigger (see zoneFromTrigger); returns an error message or null. */
+  setFromTrigger: (
+    id: ZoneId,
+    triggers: readonly { time: number; duration?: number }[],
+    index: number,
+  ) => string | null
   setBound: (id: ZoneId, edge: ZoneEdge, value: number) => void
   /** Pass to Viewer `eegOverlay` (also installs the drag handlers on the EEG canvas). */
   eegOverlay: EegOverlayPainter
@@ -39,9 +50,10 @@ type Drag =
 export function useZones(duration: number): ZoneState {
   const [zones, setZones] = useState<Zones>({ A: null, B: null })
   const [armed, setArmed] = useState<ZoneId>('A')
+  const [trim, setTrim] = useState(0)
 
-  const latest = useRef({ zones, armed, duration })
-  latest.current = { zones, armed, duration }
+  const latest = useRef({ zones, armed, duration, trim })
+  latest.current = { zones, armed, duration, trim }
   const geo = useRef<ViewGeometry | null>(null)
   const attached = useRef(new Map<HTMLCanvasElement, () => void>())
 
@@ -54,6 +66,15 @@ export function useZones(duration: number): ZoneState {
   }, [])
 
   const clear = useCallback((id: ZoneId) => put(id, null), [put])
+  const setFromTrigger = useCallback(
+    (id: ZoneId, triggers: readonly { time: number; duration?: number }[], index: number) => {
+      const z = zoneFromTrigger(triggers, index, latest.current.duration, latest.current.trim)
+      if (!z) return 'Nothing left of this trigger\'s zone after trimming. Reduce Trim.'
+      put(id, z)
+      return z.end - z.start < MIN_ZONE_SECONDS ? `Zone ${id} is shorter than ${MIN_ZONE_SECONDS} s.` : null
+    },
+    [put],
+  )
   const setBound = useCallback(
     (id: ZoneId, edge: ZoneEdge, value: number) => {
       const z = latest.current.zones[id]
@@ -222,5 +243,5 @@ export function useZones(duration: number): ZoneState {
     [],
   )
 
-  return { zones, armed, setArmed, clear, setBound, eegOverlay, minimapOverlay, overlayKey: zones }
+  return { zones, armed, setArmed, clear, trim, setTrim, setFromTrigger, setBound, eegOverlay, minimapOverlay, overlayKey: zones }
 }

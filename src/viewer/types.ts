@@ -24,6 +24,15 @@ export interface ChannelPrefs {
   scale?: number
 }
 
+/** EXTENSION POINT (zones): lets the Triggers tab set a zone from a trigger. */
+export interface TriggerZoneActions {
+  /** Seconds trimmed from both ends of a trigger-derived zone. */
+  trim: number
+  onTrimChange: (seconds: number) => void
+  /** Set zone `slot` from trigger `index`; returns an error message, or null on success. */
+  onSet: (slot: 'A' | 'B', index: number) => string | null
+}
+
 /** Geometry of the EEG view, in CSS px. Passed to overlay callbacks. */
 export interface ViewGeometry {
   width: number

@@ -20,6 +20,11 @@ export function ZonePsdViewer({ source, filtersUi, ...props }: Props) {
       getData={(i) => source.getData(i) ?? channels[i].data}
       eegOverlay={zs.eegOverlay}
       minimapOverlay={zs.minimapOverlay}
+      triggerZoneActions={{
+        trim: zs.trim,
+        onTrimChange: zs.setTrim,
+        onSet: (slot, i) => zs.setFromTrigger(slot, props.recording.triggers, i),
+      }}
       overlayKey={`${source.version}:${zs.overlayKey}`}
       toolbarExtra={
         <>

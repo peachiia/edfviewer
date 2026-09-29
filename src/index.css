@@ -403,6 +403,52 @@ input.bad {
 .trigger-row:hover {
   background: var(--panel-2);
 }
+.trigger-jump {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  white-space: nowrap;
+  color: inherit;
+}
+.trigger-zone-btn {
+  flex: none;
+  padding: 1px 6px;
+  opacity: 0.55;
+}
+.trigger-row:hover .trigger-zone-btn,
+.trigger-zone-btn:focus-visible {
+  opacity: 1;
+}
+.trigger-zone-btn[data-slot='A'] {
+  border-color: #3ea6ff;
+}
+.trigger-zone-btn[data-slot='B'] {
+  border-color: #ff6fa8;
+}
+.trigger-zone-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 4px 10px 6px;
+  font-size: 12px;
+}
+.trigger-zone-bar label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.trigger-zone-bar input.num {
+  width: 56px;
+}
 .trigger-row.active {
   box-shadow: inset 3px 0 var(--trigger);
 }

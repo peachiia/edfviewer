@@ -91,3 +91,29 @@ export function autoScrollDelta(x: number, width: number, windowSec: number, dtS
   // dt is capped so a stalled frame cannot jump the view
   return Math.sign(depth) * intensity * AUTOSCROLL_WINDOWS_PER_SEC * windowSec * Math.min(dtSec, 0.1)
 }
+
+/**
+ * The zone a trigger implies: its own duration when it has one, otherwise from it to the
+ * next trigger of ANY kind (strictly later in time), otherwise to the end of the recording.
+ * `trim` seconds are then cut from both ends (to skip settling time after a state change).
+ * Returns null for a bad index or when nothing is left after trimming.
+ */
+export function zoneFromTrigger(
+  triggers: readonly { time: number; duration?: number }[],
+  index: number,
+  duration: number,
+  trim = 0,
+): Zone | null {
+  const trig = triggers[index]
+  if (!trig || !Number.isFinite(trig.time)) return null
+  let end = duration
+  if (trig.duration && trig.duration > 0) {
+    end = trig.time + trig.duration
+  } else {
+    const next = triggers.find((t, i) => i > index && t.time > trig.time)
+    if (next) end = next.time
+  }
+  const cut = Math.max(0, Number.isFinite(trim) ? trim : 0)
+  const z = normalizeZone(trig.time + cut, end - cut, duration)
+  return end - cut > trig.time + cut && z.end > z.start ? z : null
+}

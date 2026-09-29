@@ -5,7 +5,7 @@ import { EegCanvas } from './EegCanvas'
 import { Minimap } from './Minimap'
 import { SidePanel, type ExtraTab } from './SidePanel'
 import { Toolbar } from './Toolbar'
-import type { ChannelDataAccessor, EegOverlayPainter, MinimapOverlayPainter } from './types'
+import type { ChannelDataAccessor, EegOverlayPainter, MinimapOverlayPainter, TriggerZoneActions } from './types'
 import { useViewerState } from './useViewerState'
 
 const SIDE_KEY = 'edfviewer.sidePanel'
@@ -38,6 +38,8 @@ export interface ViewerProps {
   /** EXTENSION POINT: extra side-panel tabs. */
   extraTabs?: ExtraTab[]
   /** EXTENSION POINT (PSD panel): rendered below the minimap. */
+  /** EXTENSION POINT (zones): "→ A / → B" buttons on each trigger row. */
+  triggerZoneActions?: TriggerZoneActions
   bottomPanel?: ReactNode | ((channelNames: string[]) => ReactNode)
 }
 
@@ -144,7 +146,7 @@ export function Viewer(props: ViewerProps) {
             ? props.bottomPanel(vs.prefs.map((p) => p.name))
             : props.bottomPanel}
         </div>
-        {sideOpen && <SidePanel rec={rec} vs={vs} extraTabs={props.extraTabs} />}
+        {sideOpen && <SidePanel rec={rec} vs={vs} extraTabs={props.extraTabs} zoneActions={props.triggerZoneActions} />}
       </div>
     </div>
   )
