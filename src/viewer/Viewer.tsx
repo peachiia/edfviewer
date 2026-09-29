@@ -29,7 +29,7 @@ export interface ViewerProps {
   /** EXTENSION POINT: extra side-panel tabs. */
   extraTabs?: ExtraTab[]
   /** EXTENSION POINT (PSD panel): rendered below the minimap. */
-  bottomPanel?: ReactNode
+  bottomPanel?: ReactNode | ((channelNames: string[]) => ReactNode)
 }
 
 const isTyping = (t: EventTarget | null) =>
@@ -120,7 +120,9 @@ export function Viewer(props: ViewerProps) {
               repaintKey={[props.overlayKey, props.theme]}
             />
           </div>
-          {props.bottomPanel}
+          {typeof props.bottomPanel === 'function'
+            ? props.bottomPanel(vs.prefs.map((p) => p.name))
+            : props.bottomPanel}
         </div>
         <SidePanel rec={rec} vs={vs} extraTabs={props.extraTabs} />
       </div>

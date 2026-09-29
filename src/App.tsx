@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { EdfParseError, loadRecording, type Recording } from './parser/parse'
-import { Viewer } from './viewer/Viewer'
+import { ZonePsdViewer } from './psd/ZonePsdViewer'
 import { FiltersMenu, maxFilterFreq, useFilteredData, useFilterSettings } from './filters'
 
 type Theme = 'dark' | 'light'
@@ -159,16 +159,15 @@ export default function App() {
       )}
 
       {loadingName === null && current ? (
-        <Viewer
+        <ZonePsdViewer
           key={current.id}
           recording={current.rec}
           fileName={current.name}
           onOpen={openDialog}
           theme={theme}
           onToggleTheme={toggleTheme}
-          getData={(i) => filtered.getData(i) ?? current.rec.channels[i].data}
-          overlayKey={filtered.version}
-          toolbarExtra={
+          source={filtered}
+          filtersUi={
             <FiltersMenu
               settings={filterSettings}
               onChange={setFilterSettings}
