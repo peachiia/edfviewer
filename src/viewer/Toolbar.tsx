@@ -11,13 +11,12 @@ interface Props {
   fileName: string
   vs: ViewerState
   onOpen: () => void
-  theme: 'dark' | 'light'
-  onToggleTheme: () => void
+  onOpenSettings: () => void
   /** EXTENSION POINT: filters popover, zone A/B buttons, etc. */
   extra?: ReactNode
 }
 
-export function Toolbar({ rec, fileName, vs, onOpen, theme, onToggleTheme, extra }: Props) {
+export function Toolbar({ rec, fileName, vs, onOpen, onOpenSettings, extra }: Props) {
   const rates = [...new Set(rec.channels.map((c) => c.samplingRate))]
   const winOptions = WINDOW_CHOICES.includes(vs.window)
     ? WINDOW_CHOICES
@@ -87,8 +86,8 @@ export function Toolbar({ rec, fileName, vs, onOpen, theme, onToggleTheme, extra
       {extra && <div className="group">{extra}</div>}
 
       <div className="group right">
-        <button title="Toggle light/dark theme" onClick={onToggleTheme}>
-          {theme === 'dark' ? 'Light' : 'Dark'}
+        <button title="Settings, help and about" aria-label="Settings" onClick={onOpenSettings}>
+          ⚙ Settings
         </button>
       </div>
     </header>

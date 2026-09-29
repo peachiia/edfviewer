@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { EdfParseError, loadRecording, type Recording } from './parser/parse'
+import { SettingsDialog } from './settings/SettingsDialog'
 import { ZonePsdViewer } from './psd/ZonePsdViewer'
 import { FiltersMenu, maxFilterFreq, useFilteredData, useFilterSettings } from './filters'
 
@@ -31,6 +32,7 @@ export default function App() {
   const [warnings, setWarnings] = useState<string[]>([])
   const [dragging, setDragging] = useState(false)
   const [theme, setTheme] = useState<Theme>(initialTheme)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const { settings: filterSettings, setSettings: setFilterSettings } = useFilterSettings()
   const filtered = useFilteredData(current?.rec ?? null, filterSettings)
   const fileInput = useRef<HTMLInputElement>(null)
@@ -115,7 +117,6 @@ export default function App() {
   }, [load])
 
   const openDialog = () => fileInput.current?.click()
-  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
 
   const loadDemo = import.meta.env.DEV
     ? async () => {
@@ -165,7 +166,7 @@ export default function App() {
           fileName={current.name}
           onOpen={openDialog}
           theme={theme}
-          onToggleTheme={toggleTheme}
+          onOpenSettings={() => setSettingsOpen(true)}
           source={filtered}
           filtersUi={
             <FiltersMenu
@@ -197,10 +198,14 @@ export default function App() {
               Load demo (dev only)
             </button>
           )}
-          <button className="small theme-corner" onClick={toggleTheme}>
-            {theme === 'dark' ? 'Light' : 'Dark'}
+          <button className="small theme-corner" onClick={() => setSettingsOpen(true)}>
+            ⚙ Settings
           </button>
         </div>
+      )}
+
+      {settingsOpen && (
+        <SettingsDialog theme={theme} onTheme={setTheme} onClose={() => setSettingsOpen(false)} />
       )}
 
       {dragging && <div className="drop-overlay">Drop to open</div>}

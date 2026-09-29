@@ -38,7 +38,12 @@ function NumField({ value, min, max, step, onCommit, title }: {
       max={max}
       step={step ?? 'any'}
       value={draft ?? value}
-      onChange={(e) => setDraft(e.target.value)}
+      onChange={(e) => {
+        setDraft(e.target.value)
+        // apply live while the value is already valid (spinner arrows, typing); Enter/blur clamps the rest
+        const v = parseFloat(e.target.value)
+        if (Number.isFinite(v) && v >= min && v <= max) onCommit(v)
+      }}
       onBlur={commit}
       onKeyDown={(e) => {
         if (e.key === 'Enter') commit()

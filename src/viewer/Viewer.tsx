@@ -13,7 +13,7 @@ export interface ViewerProps {
   fileName: string
   onOpen: () => void
   theme: 'dark' | 'light'
-  onToggleTheme: () => void
+  onOpenSettings: () => void
   /**
    * EXTENSION POINT (filters): per-channel data accessor. Default = Raw
    * samples. Pass a Filtered-signal accessor later; keep identities stable.
@@ -72,8 +72,7 @@ export function Viewer(props: ViewerProps) {
         fileName={props.fileName}
         vs={vs}
         onOpen={props.onOpen}
-        theme={props.theme}
-        onToggleTheme={props.onToggleTheme}
+        onOpenSettings={props.onOpenSettings}
         extra={props.toolbarExtra}
       />
       <div className="main">

@@ -5,7 +5,7 @@ import { ZoneToolbar } from '../zones/ZoneToolbar'
 import type { DataSource } from './dataSource'
 import { PsdPanel } from './PsdPanel'
 
-type Props = Pick<ViewerProps, 'recording' | 'fileName' | 'onOpen' | 'theme' | 'onToggleTheme'> & {
+type Props = Pick<ViewerProps, 'recording' | 'fileName' | 'onOpen' | 'theme' | 'onOpenSettings'> & {
   source: DataSource
   filtersUi: ReactNode
 }
