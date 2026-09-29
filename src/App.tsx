@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { EdfParseError, loadRecording, type Recording } from './parser/parse'
-import { Viewer } from './viewer/Viewer'
+import { ZonePsdViewer } from './psd/ZonePsdViewer'
 
 type Theme = 'dark' | 'light'
 interface Loaded {
@@ -156,7 +156,7 @@ export default function App() {
       )}
 
       {loadingName === null && current ? (
-        <Viewer
+        <ZonePsdViewer
           key={current.id}
           recording={current.rec}
           fileName={current.name}
